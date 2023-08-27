@@ -13,13 +13,16 @@ func main() {
 	fmt.Println("start main", q.TestField)
 
 	//appendToSliceWithoutPointer()
+	//changeVar()
 	//waitGroupWithArr()
 	//multipleSleepGoroutine()
+	//interfaceType()
 	//channels()
 	//moreChannels()
 	//mutexLockUnlock()
 	//contextWithCancel()
 	//contextWithTimeout()
+	//interfacesNumbers()
 }
 
 func appendToSliceWithoutPointer() {
@@ -34,6 +37,15 @@ func appendToSliceWithoutPointer() {
 	// вернет [1] тк длина увеличивается в функции но не передается обратно (return либо &)
 	// и будет ссылаться на qwe := make([]int, 1, 10) где len == 1
 	fmt.Println(len(qwe), cap(qwe), qwe)
+}
+
+func changeVar() {
+	a := 1
+	func(a *int) {
+		b := 2
+		a = &b
+	}(&a)
+	fmt.Println(a)
 }
 
 func waitGroupWithArr() {
@@ -73,6 +85,24 @@ func multipleSleepGoroutine() {
 
 	tStop := time.Now().Unix()
 	fmt.Println(tStop - tStart)
+}
+
+func interfaceType() {
+	m := make(map[string]interface{})
+	m["one"] = 1
+	m["two"] = "bibi"
+	m["thee"] = true
+
+	for key, val := range m {
+		switch val.(type) {
+		case int:
+			fmt.Printf("key %s has value of type int\n", key)
+		case string:
+			fmt.Printf("key %s has value of type string\n", key)
+		case bool:
+			fmt.Printf("key %s has value of type bool\n", key)
+		}
+	}
 }
 
 func channels() {
@@ -222,4 +252,55 @@ func contextWithTimeout() {
 	ch <- 2
 
 	time.Sleep(5 * time.Second)
+}
+
+type DBConn interface {
+	NewConn() string
+}
+
+type DB1 struct {
+	desc string
+}
+
+type DB2 struct {
+	desc string
+}
+
+func (db1 DB1) NewConn() string {
+	return fmt.Sprintf("connected to: %s", db1.desc)
+}
+
+func (db2 DB2) NewConn() string {
+	return fmt.Sprintf("connected to: %s", db2.desc)
+}
+
+func doConn(db DBConn) {
+	fmt.Println(db.NewConn())
+}
+
+func interfacesNumbers() {
+	base1 := DB1{
+		desc: "postgres",
+	}
+	base2 := DB2{
+		desc: "mongo",
+	}
+
+	var connection DBConn
+	if 2/2 == 1 {
+		connection = base1
+	} else {
+		connection = base2
+	}
+
+	fmt.Println(connection.NewConn())
+
+	// or
+	var connectionOr DBConn
+	if 2/2 == 1 {
+		connectionOr = base1
+	} else {
+		connectionOr = base2
+	}
+	doConn(connectionOr)
 }
