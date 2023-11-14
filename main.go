@@ -3,16 +3,81 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/krokhalev/sendbox_go/test_inc"
 	"sync"
 	"time"
 )
 
+//type MyInterface interface {}
+//
+//type Example struct {
+//	Value string
+//}
+//
+//func example1() MyInterface {
+//	var e *int
+//	//e.Value = "1"
+//	return e
+//}
+//
+//func example2() MyInterface {
+//	var i MyInterface
+//	return i
+//}
+
+//func main() {
+//	fmt.Println(example1() == example2())
+//}
+
+type ss1 struct{}
+type ss2 struct{}
+
+func (s1 ss1) f() {
+	fmt.Println("1")
+}
+func (s2 ss2) f() {
+	fmt.Println("2")
+}
+
+type s3 struct {
+	ss1
+	ss2
+}
+
+func newVar(i []string) {
+	q := "3"
+	fmt.Println(len(i), cap(i))
+	i = append(i, q)
+	fmt.Println(len(i), cap(i))
+}
 func main() {
-	q := test_inc.TestStruct{TestField: 1}
-	fmt.Println("start main", q.TestField)
+	//q := test_inc.TestStruct{TestField: 1}
+	//fmt.Println("start main", q.TestField)
+	//type Shape interface {
+	//	Area() float64
+	//}
+	//
+	//// Значение интерфейса
+	//var s Shape
+	//fmt.Println(s == nil)
+	//fmt.Println(nil)
+	//
+	//fmt.Println(example1())
+	//fmt.Println(example1() == example2())
+
+	//qwe := s3{}
+	//qwe.f()
+	//i := make([]string, 0, 10)
+	//newVar(i)
+	//fmt.Println(len(i), cap(i))
+	//fmt.Println(i)
+	//var i int
+	//if i == 0 {
+	//	fmt.Println(i)
+	//}
 
 	//appendToSliceWithoutPointer()
+	//appendToSliceSlice()
+	//multipleAppend()
 	//changeVar()
 	//waitGroupWithArr()
 	//multipleSleepGoroutine()
@@ -23,6 +88,7 @@ func main() {
 	//contextWithCancel()
 	//contextWithTimeout()
 	//interfacesNumbers()
+	//panicRecover()
 }
 
 func appendToSliceWithoutPointer() {
@@ -37,6 +103,34 @@ func appendToSliceWithoutPointer() {
 	// вернет [1] тк длина увеличивается в функции но не передается обратно (return либо &)
 	// и будет ссылаться на qwe := make([]int, 1, 10) где len == 1
 	fmt.Println(len(qwe), cap(qwe), qwe)
+}
+
+func appendToSliceSlice() {
+	bibi := []int{1, 2, 3, 4, 5, 6}
+
+	//qwe := bibi[1:2]
+	//fmt.Println(len(qwe), cap(qwe), qwe)
+
+	qwe := bibi[3:4]
+	fmt.Println(len(qwe), cap(qwe), qwe)
+
+	qwe = append(qwe, 7, 7, 7)
+
+	fmt.Println(len(qwe), cap(qwe), qwe)
+	fmt.Println(len(bibi), cap(bibi), bibi)
+}
+
+func multipleAppend() {
+	var a []int
+	var b []int
+	var c []int
+	a = append(a, 1)
+	a = append(a, 2)
+	b = append(a, 4)
+	c = append(a, 5)
+	c = append(b, 6)
+	fmt.Println(a, b, c)
+
 }
 
 func changeVar() {
@@ -106,30 +200,63 @@ func interfaceType() {
 }
 
 func channels() {
-	ch := make(chan int, 1)
-	ch <- 1
+	//ch := make(chan int, 1)
+	//ch <- 1
+	//
+	//select {
+	//case val := <-ch:
+	//	fmt.Println(val)
+	//default:
+	//	fmt.Println("channel is closed")
+	//}
+	//
+	//ch = nil // nil channel
+	////close(ch) // close channel
+	//
+	//select {
+	//case ch <- 2:
+	//default:
+	//	fmt.Println("handle panic")
+	//}
+	//
+	//select {
+	//case val2 := <-ch:
+	//	fmt.Println(val2)
+	//default:
+	//	fmt.Println("channel is closed")
+	//}
 
-	select {
-	case val := <-ch:
-		fmt.Println(val)
-	default:
-		fmt.Println("channel is closed")
-	}
+	chann := make(chan int, 20)
 
-	ch = nil // close channel
+	go func() {
+		for i := 0; i < 30; i++ {
+			chann <- i
+		}
+		close(chann)
+	}()
 
-	select {
-	case ch <- 2:
-	default:
-		fmt.Println("handle panic")
-	}
+	go func() {
+		time.Sleep(2 * time.Second)
+	loop:
+		for {
+			select {
+			case val, ok := <-chann:
+				if ok {
+					fmt.Println(val)
+				}
+			default:
+				if len(chann) == 0 {
+					fmt.Println("channel is empty")
+					time.Sleep(1 * time.Second)
+				} else {
+					fmt.Println("other reason")
+					break loop
+				}
+			}
+		}
+	}()
 
-	select {
-	case val2 := <-ch:
-		fmt.Println(val2)
-	default:
-		fmt.Println("channel is closed")
-	}
+	time.Sleep(7 * time.Second)
 }
 
 func moreChannels() {
@@ -303,4 +430,17 @@ func interfacesNumbers() {
 		connectionOr = base2
 	}
 	doConn(connectionOr)
+}
+
+func panicRecover() {
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Println("recovered")
+		}
+	}()
+
+	ch := make(chan int)
+	close(ch)
+	ch <- 1
 }
